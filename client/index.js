@@ -25,27 +25,26 @@ if (!WebTorrent.WEBRTC_SUPPORT) {
 }
 
 var getClient = thunky(function (cb) {
-  getRtcConfig('/rtcConfig', function (err, rtcConfig) {
-    if (err && window.location.hostname === 'instant.io') {
-      if (err) util.error(err)
-      createClient(rtcConfig)
-    } else if (err) {
-      getRtcConfig('https://instant.io/rtcConfig', function (err, rtcConfig) {
-        if (err) util.error(err)
-        createClient(rtcConfig)
-      })
-    } else {
-      createClient(rtcConfig)
-    }
-  })
-
-  function createClient (rtcConfig) {
-    var client = window.client = new WebTorrent({ rtcConfig: rtcConfig })
-    client.on('warning', util.warning)
-    client.on('error', util.error)
+  function createClient(rtcConfig) {
+    var client = window.client = new WebTorrent({rtcConfig: rtcConfig});
+    client.on('warning', util.warning);
+    client.on('error', util.error);
     cb(null, client)
   }
-})
+
+  var rtcConfig = {
+    "iceServers": [{
+      "url": "stun:23.21.150.121",
+      "urls": "stun:23.21.150.121"
+    }, {
+      "url": "turn:global.turn.twilio.com:3478?transport=udp",
+      "username": "ce023496d2ee934d59273ec55421f1a5e082957d0d5dc002bf88d2e11b05d150",
+      "credential": "tPYRXGYOlOe/tDcowENiFnbSJtjx8KPWNhP/KHmi5Bc=",
+      "urls": "turn:global.turn.twilio.com:3478?transport=udp"
+    }]
+  };
+  createClient(rtcConfig);
+});
 
 // For performance, create the client immediately
 getClient(function () {})
@@ -158,67 +157,67 @@ function onTorrent (torrent) {
   })
 
   util.log(
-    'Torrent info hash: ' + torrent.infoHash + ' ' +
-    '<a href="/#' + torrent.infoHash + '" onclick="prompt(\'Share this link with anyone you want to download this torrent:\', this.href);return false;">[Share link]</a> ' +
-    '<a href="' + torrent.magnetURI + '" target="_blank">[Magnet URI]</a> ' +
-    '<a href="' + torrent.torrentFileBlobURL + '" target="_blank" download="' + torrentFileName + '">[Download .torrent]</a>'
+    'Torrent info hash 值: ' + torrent.infoHash + ' ' +
+    '<a href="/#' + torrent.infoHash + '" onclick="prompt(\'Share this link with anyone you want to download this torrent:\', this.href);return false;">[分享链接]</a> ' +
+    '<a href="' + torrent.magnetURI + '" target="_blank">[磁力链接]</a> ' +
+    '<a href="' + torrent.torrentFileBlobURL + '" target="_blank" download="' + torrentFileName + '">[下载BT种子]</a>'
   )
 
-  function updateSpeed () {
-    var progress = (100 * torrent.progress).toFixed(1)
+  function updateSpeed() {
+    var progress = (100 * torrent.progress).toFixed(1);
     util.updateSpeed(
-      '<b>Peers:</b> ' + torrent.swarm.wires.length + ' ' +
-      '<b>Progress:</b> ' + progress + '% ' +
-      '<b>Download speed:</b> ' + prettyBytes(window.client.downloadSpeed) + '/s ' +
-      '<b>Upload speed:</b> ' + prettyBytes(window.client.uploadSpeed) + '/s'
+      '<b>连接用户:</b> ' + torrent.swarm.wires.length + ' ' +
+      '<b>进度:</b> ' + progress + '% ' +
+      '<b>下载速度:</b> ' + prettyBytes(window.client.downloadSpeed) + '/s ' +
+      '<b>上传速度:</b> ' + prettyBytes(window.client.uploadSpeed) + '/s'
     )
   }
 
-  torrent.on('download', throttle(updateSpeed, 250))
-  torrent.on('upload', throttle(updateSpeed, 250))
-  setInterval(updateSpeed, 5000)
-  updateSpeed()
+  torrent.on('download', throttle(updateSpeed, 250));
+  torrent.on('upload', throttle(updateSpeed, 250));
+  setInterval(updateSpeed, 5000);
+  updateSpeed();
 
   torrent.files.forEach(function (file) {
     // append file
     file.appendTo(util.logElem, function (err, elem) {
       if (err) return util.error(err)
-    })
+    });
 
     // append download link
     file.getBlobURL(function (err, url) {
-      if (err) return util.error(err)
+      if (err) return util.error(err);
 
-      var a = document.createElement('a')
-      a.target = '_blank'
-      a.download = file.name
-      a.href = url
-      a.textContent = 'Download ' + file.name
+      var a = document.createElement('a');
+      a.target = '_blank';
+      a.download = file.name;
+      a.href = url;
+      a.textContent = '下载 ' + file.name;
       util.log(a)
     })
   })
 }
 
 function onBeforeUnload (e) {
-  if (!e) e = window.event
+  if (!e) e = window.event;
 
   if (!window.client || window.client.torrents.length === 0) return
 
   var isLoneSeeder = window.client.torrents.some(function (torrent) {
     return torrent.swarm && torrent.swarm.numPeers === 0 && torrent.progress === 1
-  })
-  if (!isLoneSeeder) return
+  });
+  if (!isLoneSeeder) return;
 
   var names = listify(window.client.torrents.map(function (torrent) {
     return '"' + (torrent.name || torrent.infoHash) + '"'
-  }))
+  }));
 
   var theseTorrents = window.client.torrents.length >= 2
     ? 'these torrents'
-    : 'this torrent'
+    : 'this torrent';
   var message = 'You are the only person sharing ' + names + '. ' +
-    'Consider leaving this page open to continue sharing ' + theseTorrents + '.'
+    'Consider leaving this page open to continue sharing ' + theseTorrents + '.';
 
-  if (e) e.returnValue = message // IE, Firefox
-  return message // Safari, Chrome
+  if (e) e.returnValue = message; // IE, Firefox
+  return message; // Safari, Chrome
 }

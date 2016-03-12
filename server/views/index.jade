@@ -2,24 +2,19 @@ extends layout
 
 block body
   main
-    h1 Instant.io - Streaming file transfer over WebTorrent
-    p Download/upload files using the <a href="http://webtorrent.io" target="_blank">WebTorrent</a> protocol (BitTorrent over WebRTC). This is a beta.
-    h2#logHeading(style='display: none') Log
+    h1 流文件传输
+    h2#logHeading(style='display: none') 日志
     .speed
     .log
 
-    h2 Start seeding
+    h2 添加文件
     p
-      | Drag-and-drop a file (or files) to begin sharing. Or choose a file:
+      | 拖拽文件便可直接分享，或者点击选择文件:
       | #{ ' ' }
       input(type='file', name='upload', multiple)
 
-    h2 Start downloading
+    h2 下载文件
     form
-      label(for='torrentId') Download from a magnet link or info hash
+      label(for='torrentId') 输入文件hash或者输入磁链接下载文件
       input(name='torrentId', placeholder='magnet:' required)
-      button(type='submit') Download
-
-    footer
-      p: small <a href="http://webtorrent.io" target="_blank">WebTorrent</a> is powered by JavaScript and WebRTC. Works in Chrome, Firefox, and Opera (desktop and Android).
-      p: small Code is available on <a href="https://github.com/feross/instant.io" target="_blank">GitHub</a> under MIT License. Run <code>localStorage.debug = '*'</code> in the console and refresh to enable verbose logs.
+      button(type='submit') 下载
